@@ -15,8 +15,8 @@ def is_index_like(text: str) -> bool:
     t = text.lower()
     if "index" in t.splitlines()[:3]:
         return True
-    lines = [l.strip() for l in t.splitlines() if l.strip()]
-    short_lines = sum(1 for l in lines[:30] if re.search(r'\d{1,4}$', l))
+    lines = [line.strip() for line in t.splitlines() if line.strip()]
+    short_lines = sum(1 for line in lines[:30] if re.search(r'\d{1,4}$', line))
     return short_lines > 6
 
 
@@ -24,7 +24,7 @@ def detect_repeated_lines(pages_text: List[str], threshold=0.5):
     from collections import Counter
     counts = Counter()
     for t in pages_text:
-        lines = [l.strip() for l in t.splitlines() if l.strip()]
+        lines = [line.strip() for line in t.splitlines() if line.strip()]
         if lines:
             counts.update({lines[0], lines[-1]})
     repeated = {line for line,count in counts.items() if count/len(pages_text) >= threshold}
@@ -56,7 +56,7 @@ def extract_pages(pdf_path: str, image_dir: Optional[str]=None):
     for i, (text, page) in enumerate(zip(pages_text, pages_meta), start=1):
         if is_index_like(text):
             continue
-        lines = [l for l in text.splitlines() if l.strip() and l.strip() not in repeated]
+        lines = [line for line in text.splitlines() if line.strip() and line.strip() not in repeated]
         cleaned = "\n".join(lines)
         tables = []
         for t in (page.extract_tables() or []):
