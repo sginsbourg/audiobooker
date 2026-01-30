@@ -1,6 +1,9 @@
+"""PDF extraction utilities: clean pages, detect headers/footers, and summarize tables."""
+
 import re
 from dataclasses import dataclass
 from typing import List, Optional
+from collections import Counter
 
 import pdfplumber
 
@@ -14,6 +17,7 @@ class PageContent:
 
 
 def is_index_like(text: str) -> bool:
+    """Return True if the page text looks like an index/TOC page."""
     t = text.lower()
     if "index" in t.splitlines()[:3]:
         return True
@@ -23,9 +27,9 @@ def is_index_like(text: str) -> bool:
 
 
 def detect_repeated_lines(pages_text: List[str], threshold=0.5):
-    from collections import Counter
+    """Detect lines that repeat across pages (likely headers/footers)."""
 
-    counts = Counter()
+    counts: Counter[str] = Counter()
     for t in pages_text:
         lines = [line.strip() for line in t.splitlines() if line.strip()]
         if lines:
@@ -37,11 +41,15 @@ def detect_repeated_lines(pages_text: List[str], threshold=0.5):
 
 
 def summarize_table(table):
+    """Make a short, human-readable summary from a small table.
+
+    Only include the header and first few rows to keep summaries concise.
+    """
     if not table:
         return ""
     header = table[0]
     rows = table[1:6]
-    lines = []
+    lines: list[str] = []
     for r in rows:
         pairs = [f"{h}: {c}" for h, c in zip(header, r) if c and c.strip()]
         if pairs:
@@ -49,7 +57,8 @@ def summarize_table(table):
     return "Table summary: " + (" | ".join(lines) if lines else "no readable rows")
 
 
-def extract_pages(pdf_path: str, image_dir: Optional[str] = None):
+def extract_pages(pdf_path: str, _image_dir: Optional[str] = None):
+    """Yield PageContent entries for all non-index pages in the PDF file."""
     pages_text = []
     pages_meta = []
     with pdfplumber.open(pdf_path) as pdf:
@@ -67,9 +76,9 @@ def extract_pages(pdf_path: str, image_dir: Optional[str] = None):
             if line.strip() and line.strip() not in repeated
         ]
         cleaned = "\n".join(lines)
-        tables = []
+        tables: list[str] = []
         for t in page.extract_tables() or []:
             tables.append(summarize_table(t))
-        images = []
+        images: list[str] = []
         # image extraction left minimal for now
         yield PageContent(page_no=i, text=cleaned, tables=tables, image_paths=images)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""CLI script to generate audiobooks from PDF files."""
 import argparse
 from pathlib import Path
 
@@ -14,11 +15,19 @@ def assemble_audio(parts, out_file):
     for p in parts:
         seg = AudioSegment.from_file(p)
         combined = seg if combined is None else (combined + seg)
+    if combined is None:
+        raise ValueError("No audio parts to assemble")
     combined.export(out_file, format=Path(out_file).suffix.replace(".", ""))
     return out_file
 
 
+# pylint: disable=too-many-locals
 def main():
+    """Main CLI entry point for audiobook generation.
+
+    This function is intentionally compact; pylint's `too-many-locals` rule is disabled
+    for readability and to avoid premature refactors during development.
+    """
     p = argparse.ArgumentParser()
     p.add_argument("pdf", help="input PDF file (English only)")
     p.add_argument("--out", default="out", help="output directory")
@@ -34,7 +43,7 @@ def main():
 
     chunk_files = []
     page_cnt = 0
-    for page in extract_pages(args.pdf, image_dir=str(outdir / "images")):
+    for page in extract_pages(args.pdf, str(outdir / "images")):
         page_cnt += 1
         text = page.text
         for t in page.tables:
