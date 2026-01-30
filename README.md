@@ -41,9 +41,9 @@ python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-GB-
 ### Command-line options
 - `pdf` (positional): PDF file path (English-only)
 - `--out`: Output directory (default: `out`)
-- `--voice`: Edge TTS voice ID (default: `en-US-GuyNeural`)
+- `--voice`: Edge TTS voice ID (default: `en-GB-RyanNeural` — deeper English male voice)
 - `--chunk-size`: Max characters per TTS chunk (default: 4000)
-- `--split-seconds`: Split audiobook parts every N seconds (default: 3600)
+- `--split-seconds`: Split audiobook parts every N seconds (default: 3600)  
 
 ### How it handles tricky cases
 - Large PDFs: processed page-by-page and chunked to stay within TTS limits.
@@ -68,4 +68,10 @@ python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-GB-
 
 ---
 
-If you want, I can now initialize the repo (create `.gitignore`, commit files) and create a **public** GitHub repository named `audiobooker` and push it. Let me know if you want a specific license (MIT, Apache-2.0, etc.).
+## Recent changes (2026-01-30)
+- **Default voice changed** to `en-GB-RyanNeural` (a deeper English male voice) and set as the app default.
+- **Sanity test completed**: created `pdfs/new.pdf` and generated audio parts into `out_test/` and `out_test_ryan/` to validate end-to-end processing.
+- **Environment prepared**: installed Tesseract and FFmpeg, created Python `venv`, and installed core Python packages required by the toolchain.
+- **Repository created** at: https://github.com/sginsbourg/audiobooker
+
+If you want, I can add a GitHub Action to run a smoke test on every push, or implement advanced features such as BLIP-based image captions or an Azure/ElevenLabs TTS provider.
