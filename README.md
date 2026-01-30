@@ -35,7 +35,7 @@ python -m pip install -r requirements.txt
 ```
 3. Run the generator:
 ```powershell
-python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-US-GuyNeural
+python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-GB-RyanNeural
 ```
 
 ### Command-line options

@@ -12,7 +12,7 @@ class TTSProvider(ABC):
         pass
 
 class EdgeTTSProvider(TTSProvider):
-    def __init__(self, voice="en-US-GuyNeural", rate="0%"):
+    def __init__(self, voice="en-GB-RyanNeural", rate="0%"):
         if Communicate is None:
             raise RuntimeError("edge-tts not installed")
         self.voice = voice

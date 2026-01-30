@@ -20,7 +20,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("pdf", help="input PDF file (English only)")
     p.add_argument("--out", default="out", help="output directory")
-    p.add_argument("--voice", default="en-US-GuyNeural", help="voice id (edge-tts)")
+    p.add_argument("--voice", default="en-GB-RyanNeural", help="voice id (edge-tts)")
     p.add_argument("--chunk-size", type=int, default=4000)
     p.add_argument("--split-seconds", type=int, default=60*60)
     args = p.parse_args()
