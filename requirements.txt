@@ -1,0 +1,15 @@
+pdfplumber
+pymupdf
+pytesseract
+pillow
+edge-tts
+pydub
+tqdm
+regex
+ffmpeg-python
+mutagen
+python-dotenv
+requests
+# Optional (large): transformers, torch
+# transformers
+# torch

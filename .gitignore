@@ -1,0 +1,27 @@
+# Virtual env
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Byte-compiled / optimized
+*.egg-info/
+*.egg
+
+# Distribution / packaging
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# env files
+.env
+
+# audio outputs
+out/
+*.mp3
+*.m4b
