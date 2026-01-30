@@ -1,0 +1,95 @@
+Audiobooker — Action Items and Improvement Plan
+
+Purpose
+-------
+This document lists prioritized improvement options for the `audiobooker` project, expands each item with rationale, estimated effort, acceptance criteria, and suggested implementation notes. Use this as a roadmap to pick the next development tasks and to track implementation progress.
+
+High priority (impactful, small–medium effort)
+--------------------------------------------
+1) Improve header/footer & index detection
+   - Rationale: Repeated headers/footers and index pages cause redundant or noisy audio; better detection reduces poor listening experience.
+   - Implementation notes: Use spatial analysis (top/bottom margins), frequency of repeated lines across pages, fuzzy matching (Levenshtein), and optionally OCR when extraction fails.
+   - Estimated effort: 1–2 days
+   - Acceptance criteria: On a test set of 10 multi-page PDFs, header/footer detection removes >90% of repeated lines and reduces repeated audio content by >95%.
+
+2) Better sentence/semantic chunking
+   - Rationale: Avoid TTS cutting sentences or reading unnatural chunks; create semantically coherent chunks for natural prosody and provider limits.
+   - Implementation notes: Replace regex-based splitter with spaCy or use paragraph-aware heuristics; support adjustable max tokens/characters and overlap windows.
+   - Estimated effort: 1 day
+   - Acceptance criteria: No chunk ends mid-sentence in 99% of samples; chunks respect provider size limits.
+
+3) TTS provider options & controls
+   - Rationale: Support multiple providers (Azure, ElevenLabs, Edge) and expose voice/pitch/rate so users can choose desired voice quality.
+   - Implementation notes: Implement `AzureTTSProvider` and `ElevenLabsProvider` following `TTSProvider` interface; add config via `.env` or CLI flags.
+   - Estimated effort: 2–3 days (depends on provider APIs and auth complexity)
+   - Acceptance criteria: Users can choose provider in config; same input produces audio via each provider with retries and error handling.
+
+4) Robust retry/backoff + concurrency
+   - Rationale: Improve throughput and resilience to API rate limits and transient network errors.
+   - Implementation notes: Use asyncio + semaphore-based concurrency, implement exponential backoff with jitter, and support resumable jobs (checkpointing progress).
+   - Estimated effort: 2–4 days
+   - Acceptance criteria: Handles simulated 429 responses gracefully and completes without manual restarts; throughput improves for large jobs.
+
+Medium priority (usability & quality)
+------------------------------------
+5) Table-to-speech improvements
+   - Rationale: Tables are often unreadable as raw text — summarizing into natural-sounding sentences improves comprehension.
+   - Implementation notes: Heuristic summarizer (header+first N rows) for small tables; optionally call LLM (with caution on cost) for complex tables.
+   - Estimated effort: 1–2 days (heuristic); 2–4 days (LLM integration)
+   - Acceptance criteria: Table summaries are concise (<2 sentences) and include headers and representative rows.
+
+6) Image captioning (BLIP)
+   - Rationale: Image content that conveys meaning (figures, charts) should be described for audio listeners.
+   - Implementation notes: Integrate BLIP or another captioning model as optional functionality; store captions and insert into text flow with markers.
+   - Estimated effort: 3–7 days (depends on whether GPU is available locally or remote inference is used)
+   - Acceptance criteria: Captions present for images with descriptive text; user can toggle captions on/off.
+
+7) Output polishing: m4b + chapter markers + metadata
+   - Rationale: Deliver audiobooks in player-friendly formats with chapter markers and metadata (title/author) for devices and apps.
+   - Implementation notes: Use ffmpeg to produce `.m4b` and attach ID3 or iTunes-style metadata; generate chapter cue files.
+   - Estimated effort: 1–2 days
+   - Acceptance criteria: Create valid `.m4b` files with metadata readable by major players and working chapter navigation.
+
+8) Config file & CLI improvements
+   - Rationale: Make the tool easier to customize without changing code.
+   - Implementation notes: Support `pyproject`/`poetry` config or a dotfile (`~/.audiobooker`), add CLI entry point with subcommands, and add verbose/debug flags.
+   - Estimated effort: 1 day
+   - Acceptance criteria: Users can set defaults in config file and run CLI commands without editing source.
+
+Testing & CI
+------------
+9) Unit tests and GitHub Actions smoke test
+   - Rationale: Prevent regressions and automate sanity checks on push.
+   - Implementation notes: Add `pytest` tests for PDF parser, chunker, and a mocked TTS provider; add GitHub Action workflow to: check out, set up Python, install deps, run tests, and (optionally) generate sample audio artifact and upload as workflow artifact.
+   - Estimated effort: 1–2 days for tests + 1 day for CI workflow
+   - Acceptance criteria: Tests pass on local and on GitHub Actions; smoke test workflow runs and produces artifact on PR/push.
+
+Packaging, docs & community
+---------------------------
+10) Packaging and docs expansion
+    - Rationale: Easier installation and better onboarding for new contributors.
+    - Implementation notes: Add `pyproject.toml` for packaging, write `docs/` with examples, add CONTRIBUTING and PR templates.
+    - Estimated effort: 1–3 days
+    - Acceptance criteria: Package can be installed with `pip install .` and docs include at least 3 usage examples.
+
+Security & operations
+---------------------
+11) Secrets management and provider auth
+    - Rationale: Securely manage API keys for cloud TTS providers.
+    - Implementation notes: Use `.env` + `python-dotenv` for local dev and GitHub Secrets for workflows; document the needed scopes and permissions.
+    - Estimated effort: 1 day
+    - Acceptance criteria: No keys in repo; examples documented and workflows use GitHub Secrets.
+
+Suggested next steps (recommended priority order)
+------------------------------------------------
+A. Add GitHub Action smoke test + unit tests (fast win). 
+B. Implement TTS provider options (Azure/ElevenLabs) and expose voice/pitch/rate in config. 
+C. Improve header/footer detection and chunking heuristics. 
+D. Add output polishing (m4b/chapters) and table summarizer. 
+
+Notes
+-----
+- Effort estimates are rough; exact time depends on scope and testing requirements.
+- For heavy ML features (BLIP, LLM summarization), provide optional flags to avoid forcing heavy dependencies on all users.
+
+If you want, I can start with (A) adding the CI smoke test and some unit tests now and push the changes. Let me know which item(s) to begin with and I will proceed.
