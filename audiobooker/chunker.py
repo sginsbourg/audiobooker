@@ -1,12 +1,13 @@
-import regex as re
 from typing import List
+
+import regex as re
 
 SENTENCE_RE = re.compile(r'(.+?[\.\?\!]["\']?\s+)', flags=re.S)
 
 
 def split_into_sentences(text: str):
     parts = [m.group(1).strip() for m in SENTENCE_RE.finditer(text)]
-    tail = SENTENCE_RE.sub('', text).strip()
+    tail = SENTENCE_RE.sub("", text).strip()
     if tail:
         parts.append(tail)
     return parts if parts else [text]
@@ -21,7 +22,7 @@ def chunk_text(text: str, max_chars=4000, overlap=200) -> List[str]:
             cur = (cur + " " + s).strip()
         else:
             chunks.append(cur)
-            cur = " ".join(cur.split()[-overlap//5:]) + " " + s
+            cur = " ".join(cur.split()[-overlap // 5 :]) + " " + s
     if cur:
         chunks.append(cur)
     return chunks

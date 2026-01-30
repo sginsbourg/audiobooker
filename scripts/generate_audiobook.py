@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 import argparse
 from pathlib import Path
-from audiobooker.pdf_processor import extract_pages
-from audiobooker.chunker import chunk_text
-from audiobooker.tts_providers import EdgeTTSProvider
+
 from pydub import AudioSegment
+
+from audiobooker.chunker import chunk_text
+from audiobooker.pdf_processor import extract_pages
+from audiobooker.tts_providers import EdgeTTSProvider
 
 
 def assemble_audio(parts, out_file):
@@ -12,7 +14,7 @@ def assemble_audio(parts, out_file):
     for p in parts:
         seg = AudioSegment.from_file(p)
         combined = seg if combined is None else (combined + seg)
-    combined.export(out_file, format=Path(out_file).suffix.replace('.', ''))
+    combined.export(out_file, format=Path(out_file).suffix.replace(".", ""))
     return out_file
 
 
@@ -22,7 +24,7 @@ def main():
     p.add_argument("--out", default="out", help="output directory")
     p.add_argument("--voice", default="en-GB-RyanNeural", help="voice id (edge-tts)")
     p.add_argument("--chunk-size", type=int, default=4000)
-    p.add_argument("--split-seconds", type=int, default=60*60)
+    p.add_argument("--split-seconds", type=int, default=60 * 60)
     args = p.parse_args()
 
     outdir = Path(args.out)
@@ -49,7 +51,7 @@ def main():
     for f in chunk_files:
         dur = AudioSegment.from_file(f).duration_seconds
         if running_secs + dur > args.split_seconds and group:
-            idx = len(parts)+1
+            idx = len(parts) + 1
             outpath = outdir / f"audiobook_part_{idx:03d}.mp3"
             assemble_audio(group, outpath)
             parts.append(str(outpath))
@@ -58,12 +60,13 @@ def main():
         group.append(f)
         running_secs += dur
     if group:
-        idx = len(parts)+1
+        idx = len(parts) + 1
         outpath = outdir / f"audiobook_part_{idx:03d}.mp3"
         assemble_audio(group, outpath)
         parts.append(str(outpath))
 
     print("Created parts:", parts)
+
 
 if __name__ == "__main__":
     main()
