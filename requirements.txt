@@ -10,6 +10,7 @@ ffmpeg-python
 mutagen
 python-dotenv
 requests
+pytest
 # Optional (large): transformers, torch
 # transformers
 # torch

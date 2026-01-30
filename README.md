@@ -1,5 +1,7 @@
 # Audiobooker
 
+![CI](https://github.com/sginsbourg/audiobooker/actions/workflows/ci.yml/badge.svg)
+
 A minimal, practical toolkit to convert English-language PDFs into narrated audiobooks with smart processing.
 
 ---
@@ -35,8 +37,22 @@ python -m pip install -r requirements.txt
 ```
 3. Run the generator:
 ```powershell
-python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-GB-RyanNeural
+# From the repo root. If you see `ModuleNotFoundError: No module named 'audiobooker'`, set PYTHONPATH to the repo root (PowerShell):
+$env:PYTHONPATH='C:\path\to\audiobooker'; python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-GB-RyanNeural
 ```
+4. (Optional) Create a sample PDF for quick testing:
+```powershell
+python scripts/make_sample_pdf.py
+# This writes `pdfs/new.pdf` which you can then pass to the generator.
+```
+
+### Testing
+- Run the smoke tests locally:
+```powershell
+pytest -q
+```
+- The smoke test (`tests/test_smoke.py`) uses an offline `MockTTSProvider` (no network, no FFmpeg) and asserts the generator creates non-empty MP3 files.
+- CI runs tests on push (see `.github/workflows/ci.yml`) and does **not** upload any audio files or artifacts.
 
 ### Command-line options
 - `pdf` (positional): PDF file path (English-only)
@@ -72,6 +88,7 @@ python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-GB-
 - **Default voice changed** to `en-GB-RyanNeural` (a deeper English male voice) and set as the app default.
 - **Sanity test completed**: created `pdfs/new.pdf` and generated audio parts into `out_test/` and `out_test_ryan/` to validate end-to-end processing.
 - **Environment prepared**: installed Tesseract and FFmpeg, created Python `venv`, and installed core Python packages required by the toolchain.
+- **Added tests & CI**: `pytest` smoke test (`tests/test_smoke.py`) and GitHub Actions CI (`.github/workflows/ci.yml`) — CI runs tests but does **not** upload audio artifacts.
 - **Repository created** at: https://github.com/sginsbourg/audiobooker
 
 If you want, I can add a GitHub Action to run a smoke test on every push, or implement advanced features such as BLIP-based image captions or an Azure/ElevenLabs TTS provider.
