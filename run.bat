@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 rem ==================================================================================
 rem Audiobooker Launcher
@@ -26,27 +26,65 @@ rem Check if arguments were provided
 if "%~1"=="" goto :InteractiveMode
 
 :RunMode
-rem Check args to see if we should auto-name the output folder
+set "OUT_DIR=out"
+set "PDF_PATH="
 set "HAS_OUT="
-set "PDF_NAME="
 
-rem Naive arg parsing to find input PDF and check for --out flag
-for %%a in (%*) do (
-    if /I "%%~a"=="--out" set HAS_OUT=1
-    if /I "%%~xa"==".pdf" set "PDF_NAME=%%~na"
+rem Parse arguments to find input PDF and check for --out flag
+set "ARGS="
+:ParseArgs
+if "%~1"=="" goto :AfterParse
+set "CURR_ARG=%~1"
+set "ARGS=!ARGS! "%CURR_ARG%""
+
+rem Identify PDF and explicit --out
+if /I "!CURR_ARG:~-4!"==".pdf" (
+    set "PDF_PATH=%~f1"
+    set "PDF_NAME=%~n1"
 )
+if /I "!CURR_ARG!"=="--out" (
+    set "HAS_OUT=1"
+    shift
+    set "OUT_DIR=%~1"
+    set "ARGS=!ARGS! "%~1""
+)
+shift
+goto :ParseArgs
 
+:AfterParse
 rem If --out is not specified and we found a PDF, use the PDF name as the output folder
 if not defined HAS_OUT (
     if defined PDF_NAME (
-        echo [Run.bat] Auto-setting output directory to: "%PDF_NAME%"
-        "%PYTHON_EXE%" "%MAIN_SCRIPT%" %* --out "%PDF_NAME%"
-        goto :End
+        set "OUT_DIR=%PDF_NAME%"
+        set "ARGS=!ARGS! --out "!OUT_DIR!""
+        echo [Run.bat] Auto-setting output directory to: "!OUT_DIR!"
     )
 )
 
-rem Otherwise run exactly as provided
-"%PYTHON_EXE%" "%MAIN_SCRIPT%" %*
+rem Run the generator
+echo [Run.bat] Starting conversion...
+"%PYTHON_EXE%" "%MAIN_SCRIPT%" !ARGS!
+set "EXIT_CODE=%ERRORLEVEL%"
+
+if %EXIT_CODE% equ 0 (
+    if defined PDF_PATH (
+        if exist "%PDF_PATH%" (
+            echo [Run.bat] Moving original PDF to "!OUT_DIR!"...
+            if not exist "!OUT_DIR!" mkdir "!OUT_DIR!"
+            move /Y "%PDF_PATH%" "!OUT_DIR!\" >nul
+        )
+    )
+    echo.
+    echo ==================================================
+    echo SUCCESS: Audiobook generation complete!
+    echo Files are located in: "!OUT_DIR!"
+    echo ==================================================
+    pause
+) else (
+    echo.
+    echo [ERROR] Audiobook generation failed with exit code %EXIT_CODE%.
+    pause
+)
 goto :End
 
 :InteractiveMode
