@@ -40,6 +40,11 @@ def main():
         action="store_true",
         help="paste text directly from terminal (supports up to ~10k chars)",
     )
+    p.add_argument(
+        "--keep-chunks",
+        action="store_true",
+        help="do not delete intermediate audio chunks after assembly",
+    )
     args = p.parse_args()
 
     if not args.pdf and not args.paste:
@@ -110,6 +115,13 @@ def main():
 
     print("Created parts:", parts)
 
+    if not args.keep_chunks:
+        print("Cleaning up intermediate chunks...")
+        for f in chunk_files:
+            try:
+                Path(f).unlink()
+            except OSError as e:
+                print(f"Error deleting {f}: {e}")
 
 if __name__ == "__main__":
     main()
