@@ -29,21 +29,55 @@ def main():
     for readability and to avoid premature refactors during development.
     """
     p = argparse.ArgumentParser()
-    p.add_argument("pdf", help="input PDF file (English only)")
+    p.add_argument("pdf", nargs="?", help="input PDF file (English only) or empty for paste")
     p.add_argument("--out", default="out", help="output directory")
     p.add_argument("--voice", default="en-GB-RyanNeural", help="voice id (edge-tts)")
     p.add_argument("--chunk-size", type=int, default=4000)
     p.add_argument("--split-seconds", type=int, default=60 * 60)
+    p.add_argument(
+        "--paste",
+        action="store_true",
+        help="paste text directly from terminal (supports up to ~10k chars)",
+    )
     args = p.parse_args()
+
+    if not args.pdf and not args.paste:
+        p.error("You must specify either a PDF file or --paste")
+    if args.pdf and args.paste:
+        p.error("Cannot specify both a PDF file and --paste")
 
     outdir = Path(args.out)
     outdir.mkdir(parents=True, exist_ok=True)
 
     tts = EdgeTTSProvider(voice=args.voice)
 
+    # Determine source of text
+    if args.paste:
+        print(
+            "Paste your text below (finish with Ctrl+Z + Enter on Windows, Ctrl+D on Unix):"
+        )
+        import sys
+        text = sys.stdin.read()
+        if not text.strip():
+            print("No text provided. Exiting.")
+            return
+
+        # Create a dummy page iterator for consistency
+        # Import PageContent here to avoid circular or top-level import issues if any
+        # though top-level is fine too, but cleaner to verify
+        from audiobooker.pdf_processor import PageContent
+        
+        # Treat pasted text as a single page
+        pages_iter = [
+            PageContent(page_no=1, text=text, tables=[], image_paths=[])
+        ]
+        print(f"\nProcessing {len(text)} characters of input text...")
+    else:
+        pages_iter = extract_pages(args.pdf, str(outdir / "images"))
+
     chunk_files = []
     page_cnt = 0
-    for page in extract_pages(args.pdf, str(outdir / "images")):
+    for page in pages_iter:
         page_cnt += 1
         text = page.text
         for t in page.tables:

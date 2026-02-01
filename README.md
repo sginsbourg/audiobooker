@@ -55,7 +55,8 @@ pytest -q
 - CI runs tests on push (see `.github/workflows/ci.yml`) and does **not** upload any audio files or artifacts.
 
 ### Command-line options
-- `pdf` (positional): PDF file path (English-only)
+- `pdf` (positional): PDF file path (English-only) or empty if using `--paste`
+- `--paste`: Paste text directly from terminal (finish with Ctrl+Z + Enter on Windows, Ctrl+D on Unix)
 - `--out`: Output directory (default: `out`)
 - `--voice`: Edge TTS voice ID (default: `en-GB-RyanNeural` — deeper English male voice)
 - `--chunk-size`: Max characters per TTS chunk (default: 4000)
