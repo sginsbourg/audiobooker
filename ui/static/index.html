@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audiobooker AI</title>
+    <style>
+        :root {
+            --bg-dark: #0f1115;
+            --bg-card: #1c1f26;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --border: #2d3139;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle { color: var(--text-muted); }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .input-group { margin-bottom: 1.5rem; }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            background: #111318;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-main);
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        select, input[type="file"] {
+            width: 100%;
+            background: #111318;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.8rem;
+            color: var(--text-main);
+        }
+        
+        input[type="file"]::file-selector-button {
+             background: var(--primary);
+             border: none;
+             color: white;
+             padding: 0.5rem 1rem;
+             border-radius: 4px;
+             margin-right: 1rem;
+             cursor: pointer;
+        }
+
+        button.primary {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button.primary:hover { background: var(--primary-hover); }
+        
+        button.primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hidden { display: none; }
+
+        #result-area {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            animation: fadeIn 0.5s ease;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 1rem;
+            border-radius: 8px;
+        }
+
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <header>
+                <h1>Audiobooker AI</h1>
+                <p class="subtitle">Transform PDF & Text into natural speech instantly</p>
+            </header>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('paste')">Paste Text</button>
+                <button class="tab" onclick="switchTab('pdf')">Upload PDF</button>
+            </div>
+
+            <div class="input-group">
+                <label>Select Narrator</label>
+                <select id="voice-select">
+                    <option value="en-GB-RyanNeural">Ryan (British, Deep) - Default</option>
+                    <option value="en-US-ChristopherNeural">Christopher (US, Male)</option>
+                    <option value="en-US-JennyNeural">Jenny (US, Female)</option>
+                    <option value="en-GB-SoniaNeural">Sonia (British, Female)</option>
+                </select>
+            </div>
+
+            <div id="paste-section">
+                <div class="input-group">
+                    <label>Enter Text (Markdown supported and stripped automatically)</label>
+                    <textarea id="text-input" placeholder="Paste your article or chapter here..."></textarea>
+                </div>
+            </div>
+
+            <div id="pdf-section" class="hidden">
+                <div class="input-group">
+                    <label>Upload PDF Document</label>
+                    <input type="file" id="pdf-input" accept=".pdf">
+                </div>
+            </div>
+
+            <button id="generate-btn" class="primary" onclick="generate()">
+                <span>Generate Audiobook</span>
+            </button>
+
+            <div id="result-area" class="hidden">
+                <h3>Your Audiobook</h3>
+                <p class="subtitle" style="margin-bottom: 1rem; font-size: 0.9rem;">Generation complete. Listen or download below.</p>
+                <audio id="audio-player" controls></audio>
+                <div style="margin-top: 1rem;">
+                    <a id="download-link" href="#" download style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">Download .mp3 file</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'paste';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'paste') {
+                document.getElementById('paste-section').classList.remove('hidden');
+                document.getElementById('pdf-section').classList.add('hidden');
+            } else {
+                document.getElementById('paste-section').classList.add('hidden');
+                document.getElementById('pdf-section').classList.remove('hidden');
+            }
+        }
+
+        async function generate() {
+            const btn = document.getElementById('generate-btn');
+            const resultArea = document.getElementById('result-area');
+            const voice = document.getElementById('voice-select').value;
+            
+            // UI Loading State
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader"></div><span>Processing...</span>';
+            resultArea.classList.add('hidden');
+
+            try {
+                let response;
+                
+                if (currentMode === 'paste') {
+                    const text = document.getElementById('text-input').value;
+                    if (!text.trim()) { alert('Please enter some text'); return; }
+                    
+                    response = await fetch('/api/generate/text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text, voice })
+                    });
+                } else {
+                    const fileInput = document.getElementById('pdf-input');
+                    if (!fileInput.files[0]) { alert('Please select a PDF'); return; }
+                    
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    formData.append('voice', voice);
+                    
+                    response = await fetch('/api/generate/pdf', {
+                        method: 'POST',
+                        body: formData
+                    });
+                }
+
+                if (!response.ok) throw new Error('Generation failed');
+                
+                const data = await response.json();
+                
+                // Show Result
+                const audioPlayer = document.getElementById('audio-player');
+                const downloadLink = document.getElementById('download-link');
+                
+                audioPlayer.src = data.audio_url;
+                downloadLink.href = data.audio_url;
+                
+                resultArea.classList.remove('hidden');
+                
+            } catch (e) {
+                alert('Error: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Generate Audiobook</span>';
+            }
+        }
+    </script>
+</body>
+</html>
