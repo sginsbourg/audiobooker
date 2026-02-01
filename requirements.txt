@@ -14,3 +14,6 @@ pytest
 # Optional (large): transformers, torch
 # transformers
 # torch
+fastapi
+uvicorn
+python-multipart

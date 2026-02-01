@@ -1,34 +1,10 @@
 #!/usr/bin/env python
 """CLI script to generate audiobooks from PDF files."""
 import argparse
-from pathlib import Path
+from audiobooker.generator import AudiobookGenerator
 
-from pydub import AudioSegment
-
-from audiobooker.chunker import chunk_text
-from audiobooker.pdf_processor import extract_pages, PageContent
-from audiobooker.tts_providers import EdgeTTSProvider
-from audiobooker.text_cleaner import clean_markdown
-
-
-def assemble_audio(parts, out_file):
-    combined = None
-    for p in parts:
-        seg = AudioSegment.from_file(p)
-        combined = seg if combined is None else (combined + seg)
-    if combined is None:
-        raise ValueError("No audio parts to assemble")
-    combined.export(out_file, format=Path(out_file).suffix.replace(".", ""))
-    return out_file
-
-
-# pylint: disable=too-many-locals
 def main():
-    """Main CLI entry point for audiobook generation.
-
-    This function is intentionally compact; pylint's `too-many-locals` rule is disabled
-    for readability and to avoid premature refactors during development.
-    """
+    """Main CLI entry point for audiobook generation."""
     p = argparse.ArgumentParser()
     p.add_argument("pdf", nargs="?", help="input PDF file (English only) or empty for paste")
     p.add_argument("--out", default="out", help="output directory")
@@ -52,12 +28,9 @@ def main():
     if args.pdf and args.paste:
         p.error("Cannot specify both a PDF file and --paste")
 
-    outdir = Path(args.out)
-    outdir.mkdir(parents=True, exist_ok=True)
+    source = args.pdf
+    is_text = False
 
-    tts = EdgeTTSProvider(voice=args.voice)
-
-    # Determine source of text
     if args.paste:
         print(
             "Paste your text below (finish with Ctrl+Z + Enter on Windows, Ctrl+D on Unix):"
@@ -67,61 +40,20 @@ def main():
         if not text.strip():
             print("No text provided. Exiting.")
             return
-        
-        # Treat pasted text as a single page
-        pages_iter = [
-            PageContent(page_no=1, text=text, tables=[], image_paths=[])
-        ]
         print(f"\nProcessing {len(text)} characters of input text...")
-    else:
-        pages_iter = extract_pages(args.pdf, str(outdir / "images"))
-
-    chunk_files = []
-    page_cnt = 0
-    for page in pages_iter:
-        page_cnt += 1
-        text = page.text
-        for t in page.tables:
-            text += "\n\n" + t
-        
-        # Clean text (remove markdown, special chars)
-        text = clean_markdown(text)
-        
-        chunks = chunk_text(text, max_chars=args.chunk_size)
-        for i, c in enumerate(chunks):
-            fname = outdir / f"p{page_cnt:04d}_c{i:03d}.mp3"
-            tts.synthesize(c, str(fname), voice=args.voice)
-            chunk_files.append(str(fname))
-
-    parts = []
-    running_secs = 0
-    group = []
-    for f in chunk_files:
-        dur = AudioSegment.from_file(f).duration_seconds
-        if running_secs + dur > args.split_seconds and group:
-            idx = len(parts) + 1
-            outpath = outdir / f"audiobook_part_{idx:03d}.mp3"
-            assemble_audio(group, outpath)
-            parts.append(str(outpath))
-            group = []
-            running_secs = 0
-        group.append(f)
-        running_secs += dur
-    if group:
-        idx = len(parts) + 1
-        outpath = outdir / f"audiobook_part_{idx:03d}.mp3"
-        assemble_audio(group, outpath)
-        parts.append(str(outpath))
-
+        source = text
+        is_text = True
+    
+    gen = AudiobookGenerator(
+        output_dir=args.out,
+        voice=args.voice,
+        chunk_size=args.chunk_size,
+        split_seconds=args.split_seconds,
+        keep_chunks=args.keep_chunks
+    )
+    
+    parts = gen.process(source, is_text=is_text)
     print("Created parts:", parts)
-
-    if not args.keep_chunks:
-        print("Cleaning up intermediate chunks...")
-        for f in chunk_files:
-            try:
-                Path(f).unlink()
-            except OSError as e:
-                print(f"Error deleting {f}: {e}")
 
 if __name__ == "__main__":
     main()
