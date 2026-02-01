@@ -6,8 +6,9 @@ from pathlib import Path
 from pydub import AudioSegment
 
 from audiobooker.chunker import chunk_text
-from audiobooker.pdf_processor import extract_pages
+from audiobooker.pdf_processor import extract_pages, PageContent
 from audiobooker.tts_providers import EdgeTTSProvider
+from audiobooker.text_cleaner import clean_markdown
 
 
 def assemble_audio(parts, out_file):
@@ -61,11 +62,6 @@ def main():
         if not text.strip():
             print("No text provided. Exiting.")
             return
-
-        # Create a dummy page iterator for consistency
-        # Import PageContent here to avoid circular or top-level import issues if any
-        # though top-level is fine too, but cleaner to verify
-        from audiobooker.pdf_processor import PageContent
         
         # Treat pasted text as a single page
         pages_iter = [
@@ -82,6 +78,10 @@ def main():
         text = page.text
         for t in page.tables:
             text += "\n\n" + t
+        
+        # Clean text (remove markdown, special chars)
+        text = clean_markdown(text)
+        
         chunks = chunk_text(text, max_chars=args.chunk_size)
         for i, c in enumerate(chunks):
             fname = outdir / f"p{page_cnt:04d}_c{i:03d}.mp3"
