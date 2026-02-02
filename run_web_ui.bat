@@ -12,8 +12,10 @@ rem Set PYTHONPATH
 set "PYTHONPATH=%~dp0"
 
 echo ==================================================
-echo Audiobooker UI
+echo Audiobooker Web UI
 echo ==================================================
+echo Launching web browser...
+start "" "http://localhost:8000"
 echo Starting server at http://localhost:8000
 echo.
 
