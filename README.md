@@ -23,6 +23,15 @@ Audiobooker is integrated with [OpenClaw](https://github.com/openclaw/openclaw),
     * One audio file may contain **multiple small chapters**.
     * Chapters are kept intact to ensure a natural listening experience.
 
+### Workflow and File Organization 📂
+
+Audiobooker follows a strict organization and cleanup procedure for every generation:
+
+1. **Project Isolation**: For every PDF processed, a new subfolder is created within your output directory (default: `out/`), named after the original PDF file.
+2. **Audio Creation**: All generated audio files (parts) are saved directly into this project folder.
+3. **Automatic Cleanup**: All temporary audio chunks (`.mp3`) used during the synthesis process are automatically removed once the final parts are assembled.
+4. **Source Archiving**: At the end of a successful generation, the original PDF file is **moved** into the project folder alongside the audio files for archival.
+
 ### Prerequisites
 
 * Windows (tested) or other OS with Python 3.11+

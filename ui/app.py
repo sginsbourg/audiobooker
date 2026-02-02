@@ -30,6 +30,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 class TextRequest(BaseModel):
     text: str
     voice: str = "en-GB-RyanNeural"
+    openclaw: bool = True
 
 @app.get("/")
 async def read_index():
@@ -44,7 +45,8 @@ def generate_from_text(request: TextRequest):
         gen = AudiobookGenerator(
             output_dir=job_out,
             voice=request.voice,
-            keep_chunks=False
+            keep_chunks=False,
+            use_openclaw=request.openclaw
         )
         
         parts = gen.process(request.text, is_text=True)
@@ -63,7 +65,11 @@ def generate_from_text(request: TextRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/generate/pdf")
-def generate_from_pdf(file: UploadFile = File(...), voice: str = Form("en-GB-RyanNeural")):
+def generate_from_pdf(
+    file: UploadFile = File(...), 
+    voice: str = Form("en-GB-RyanNeural"),
+    openclaw: bool = Form(True)
+):
     try:
         job_id = str(uuid.uuid4())
         job_out = OUTPUT_DIR / job_id
@@ -75,13 +81,15 @@ def generate_from_pdf(file: UploadFile = File(...), voice: str = Form("en-GB-Rya
         gen = AudiobookGenerator(
             output_dir=job_out,
             voice=voice,
-            keep_chunks=False
+            keep_chunks=False,
+            use_openclaw=openclaw
         )
         
         parts = gen.process(str(temp_pdf), is_text=False)
         
         # Cleanup upload
-        os.remove(temp_pdf)
+        if os.path.exists(temp_pdf):
+            os.remove(temp_pdf)
         
         if not parts:
             raise HTTPException(status_code=500, detail="No audio generated")

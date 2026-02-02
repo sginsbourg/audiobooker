@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +16,12 @@
             --border: #2d3139;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
 
         body {
             background-color: var(--bg-dark);
@@ -53,7 +59,9 @@
             margin-bottom: 0.5rem;
         }
 
-        .subtitle { color: var(--text-muted); }
+        .subtitle {
+            color: var(--text-muted);
+        }
 
         .tabs {
             display: flex;
@@ -80,7 +88,9 @@
             font-weight: 600;
         }
 
-        .input-group { margin-bottom: 1.5rem; }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
 
         label {
             display: block;
@@ -100,7 +110,8 @@
             resize: vertical;
         }
 
-        select, input[type="file"] {
+        select,
+        input[type="file"] {
             width: 100%;
             background: #111318;
             border: 1px solid var(--border);
@@ -108,15 +119,15 @@
             padding: 0.8rem;
             color: var(--text-main);
         }
-        
+
         input[type="file"]::file-selector-button {
-             background: var(--primary);
-             border: none;
-             color: white;
-             padding: 0.5rem 1rem;
-             border-radius: 4px;
-             margin-right: 1rem;
-             cursor: pointer;
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-right: 1rem;
+            cursor: pointer;
         }
 
         button.primary {
@@ -136,14 +147,18 @@
             gap: 0.5rem;
         }
 
-        button.primary:hover { background: var(--primary-hover); }
-        
+        button.primary:hover {
+            background: var(--primary-hover);
+        }
+
         button.primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .hidden { display: none; }
+        .hidden {
+            display: none;
+        }
 
         #result-area {
             margin-top: 2rem;
@@ -159,7 +174,7 @@
         }
 
         .loader {
-            border: 3px solid rgba(255,255,255,0.1);
+            border: 3px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             border-top: 3px solid white;
             width: 20px;
@@ -167,10 +182,30 @@
             animation: spin 1s linear infinite;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="card">
@@ -208,16 +243,26 @@
                 </div>
             </div>
 
-            <button id="generate-btn" class="primary" onclick="generate()">
+            <div class="input-group" style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+                <label style="margin-bottom: 0; cursor: pointer;">
+                    <input type="checkbox" id="openclaw-toggle" checked
+                        style="width: auto; margin-right: 0.5rem; transform: scale(1.2);">
+                    Enable OpenClaw AI Assistant (Cleaning & Chaptering) 🦞
+                </label>
+            </div>
+
+            <button id="generate-btn" class="primary" onclick="generate()" style="margin-top: 1.5rem;">
                 <span>Generate Audiobook</span>
             </button>
 
             <div id="result-area" class="hidden">
                 <h3>Your Audiobook</h3>
-                <p class="subtitle" style="margin-bottom: 1rem; font-size: 0.9rem;">Generation complete. Listen or download below.</p>
+                <p class="subtitle" style="margin-bottom: 1rem; font-size: 0.9rem;">Generation complete. Listen or
+                    download below.</p>
                 <audio id="audio-player" controls></audio>
                 <div style="margin-top: 1rem;">
-                    <a id="download-link" href="#" download style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">Download .mp3 file</a>
+                    <a id="download-link" href="#" download
+                        style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">Download .mp3 file</a>
                 </div>
             </div>
         </div>
@@ -230,7 +275,7 @@
             currentMode = mode;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
-            
+
             if (mode === 'paste') {
                 document.getElementById('paste-section').classList.remove('hidden');
                 document.getElementById('pdf-section').classList.add('hidden');
@@ -244,7 +289,8 @@
             const btn = document.getElementById('generate-btn');
             const resultArea = document.getElementById('result-area');
             const voice = document.getElementById('voice-select').value;
-            
+            const useOpenClaw = document.getElementById('openclaw-toggle').checked;
+
             // UI Loading State
             btn.disabled = true;
             btn.innerHTML = '<div class="loader"></div><span>Processing...</span>';
@@ -252,24 +298,25 @@
 
             try {
                 let response;
-                
+
                 if (currentMode === 'paste') {
                     const text = document.getElementById('text-input').value;
                     if (!text.trim()) { alert('Please enter some text'); return; }
-                    
+
                     response = await fetch('/api/generate/text', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text, voice })
+                        body: JSON.stringify({ text, voice, openclaw: useOpenClaw })
                     });
                 } else {
                     const fileInput = document.getElementById('pdf-input');
                     if (!fileInput.files[0]) { alert('Please select a PDF'); return; }
-                    
+
                     const formData = new FormData();
                     formData.append('file', fileInput.files[0]);
                     formData.append('voice', voice);
-                    
+                    formData.append('openclaw', useOpenClaw);
+
                     response = await fetch('/api/generate/pdf', {
                         method: 'POST',
                         body: formData
@@ -277,18 +324,18 @@
                 }
 
                 if (!response.ok) throw new Error('Generation failed');
-                
+
                 const data = await response.json();
-                
+
                 // Show Result
                 const audioPlayer = document.getElementById('audio-player');
                 const downloadLink = document.getElementById('download-link');
-                
+
                 audioPlayer.src = data.audio_url;
                 downloadLink.href = data.audio_url;
-                
+
                 resultArea.classList.remove('hidden');
-                
+
             } catch (e) {
                 alert('Error: ' + e.message);
             } finally {
@@ -298,4 +345,5 @@
         }
     </script>
 </body>
+
 </html>

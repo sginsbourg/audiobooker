@@ -9,7 +9,7 @@ from audiobooker.text_cleaner import clean_markdown
 from audiobooker.openclaw_processor import OpenClawProcessor
 
 class AudiobookGenerator:
-    def __init__(self, output_dir="out", voice="en-GB-RyanNeural", chunk_size=4000, split_seconds=3600, keep_chunks=False, use_openclaw=False):
+    def __init__(self, output_dir="out", voice="en-GB-RyanNeural", chunk_size=4000, split_seconds=3600, keep_chunks=False, use_openclaw=True):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.images_dir = self.output_dir / "images"
