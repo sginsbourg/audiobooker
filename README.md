@@ -10,107 +10,96 @@ A minimal, practical toolkit to convert English-language PDFs into narrated audi
 
 ### Overview
 
-`audiobooker` extracts text from PDF pages, removes repeated headers/footers and index pages, summarizes tables, optionally captions images, and converts the cleaned text into natural-sounding TTS audio using a pluggable provider. The output is a set of audio parts and optionally an assembled audiobook file.
+`audiobooker` is an intelligent PDF-to-audiobook converter. It leverages **OpenClaw (AI Assistant)** for high-quality text cleaning, chapter identification, and coherent audio part management. It extracts text from PDF pages, removes noise, summarizes tables, and converts the results into natural-sounding TTS audio.
+
+### OpenClaw Integration 🦞
+
+Audiobooker is integrated with [OpenClaw](https://github.com/openclaw/openclaw), a personal AI assistant. When the `--openclaw` flag is used, OpenClaw performs the following tasks:
+
+1. **AI-Powered Cleaning**: OpenClaw identifies and removes repetitive headers, footers, page numbers, and institutional boilerplate that standard filters might miss.
+2. **Smart Chaptering**: OpenClaw analyzes document flow to split long texts into logical chapters.
+3. **Intelligent Audio Management**: OpenClaw organizes the final audio files according to these rules:
+    * **No chapter is split** across two adjacent audio files.
+    * One audio file may contain **multiple small chapters**.
+    * Chapters are kept intact to ensure a natural listening experience.
 
 ### Prerequisites
 
-- Windows (tested) or other OS with Python 3.11+
-- Tesseract (for OCR on scanned PDFs)
-- FFmpeg (audio assembly and conversions)
-- Python virtual environment (recommended)
-
-System install examples (Windows):
-
-```powershell
-# using winget
-winget install --id tesseract-ocr.tesseract -e --accept-package-agreements --accept-source-agreements
-winget install --id Gyan.FFmpeg.Essentials -e --accept-package-agreements --accept-source-agreements
-```
+* Windows (tested) or other OS with Python 3.11+
+* Tesseract (for OCR on scanned PDFs)
+* FFmpeg (audio assembly and conversions)
+* **OpenClaw**: Cloned in the `openclaw` directory at the root of this repo.
+* **Node.js 22+** and **pnpm**: Required to run OpenClaw.
+* **LM Studio**: Running locally (or a similar provider) to power OpenClaw's reasoning.
 
 ### Quick start
 
-1. Create and activate a virtual environment:
+1. **Activate Environment**:
 
 ```powershell
 python -m venv venv
 venv\Scripts\Activate.ps1
 ```
 
-2. Install Python dependencies:
+1. **Install Dependencies**:
 
 ```powershell
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-3. Run the generator:
+1. **Setup OpenClaw**:
 
 ```powershell
-# From the repo root. If you see `ModuleNotFoundError: No module named 'audiobooker'`, set PYTHONPATH to the repo root (PowerShell):
-$env:PYTHONPATH='C:\path\to\audiobooker'; python scripts/generate_audiobook.py <input.pdf> --out ./book_out --voice en-GB-RyanNeural
+cd openclaw
+pnpm install
+pnpm build
+# See openclaw/README.md for configuring your AI model/LM Studio connection
 ```
 
-4. (Optional) Create a sample PDF for quick testing:
+1. **Run with AI features**:
 
 ```powershell
-python scripts/make_sample_pdf.py
-# This writes `pdfs/new.pdf` which you can then pass to the generator.
+$env:PYTHONPATH='.'; python scripts/generate_audiobook.py <input.pdf> --openclaw --out ./book_out
 ```
-
-### Testing
-
-- Run the smoke tests locally:
-
-```powershell
-pytest -q
-```
-
-- The smoke test (`tests/test_smoke.py`) uses an offline `MockTTSProvider` (no network, no FFmpeg) and asserts the generator creates non-empty MP3 files.
-- CI runs tests on push (see `.github/workflows/ci.yml`) and does **not** upload any audio files or artifacts.
 
 ### Command-line options
 
-- `pdf` (positional): PDF file path (English-only) or empty if using `--paste`
-- `--paste`: Paste text directly from terminal (finish with Ctrl+Z + Enter on Windows, Ctrl+D on Unix)
-- `--out`: Output directory (default: `out`)
-- `--voice`: Edge TTS voice ID (default: `en-GB-RyanNeural` — deeper English male voice)
-- `--chunk-size`: Max characters per TTS chunk (default: 4000)
-- `--split-seconds`: Split audiobook parts every N seconds (default: 3600)
-- `--keep-chunks`: Do not delete the intermediate `pXXX_cXXX.mp3` files after assembly  
+* `pdf` (positional): PDF file path or empty for paste.
+* `--openclaw`: **Enable AI-powered cleaning, chaptering, and audio management.**
+* `--out`: Output directory (default: `out`).
+* `--voice`: Edge TTS voice ID (default: `en-GB-RyanNeural`).
+* `--chunk-size`: Max characters per TTS chunk (default: 4000).
+* `--split-seconds`: Target duration (seconds) per audio part (default: 3600).
+* `--keep-chunks`: Keep intermediate audio files.
 
-### How it handles tricky cases
+### Testing
 
-- Large PDFs: processed page-by-page and chunked to stay within TTS limits.
-- Scanned pages: Tesseract OCR is used via `pytesseract`.
-- Repeating headers/footers: detected and removed across pages to avoid reading repeated content.
-- Index / TOC pages: heuristics detect index-like pages and skip them.
-- Tables: summarized into short human-readable rows (first several rows are converted into text summaries).
-- Images: left as TODO—image captioning using BLIP/transformers can be enabled later.
+* Run the smoke tests: `pytest -q`
+* The smoke test uses an offline `MockTTSProvider` and asserts the generator creates non-empty MP3 files.
 
-### Advanced usage and customization
+### Advanced usage
 
-- Swap TTS providers by implementing the `TTSProvider` interface in `audiobooker/tts_providers.py`.
-- To use Azure or ElevenLabs TTS, add a provider class that implements `synthesize(text, out_path, voice)`.
-- For better NLP (table summarization, smart chaptering, image captioning), install `transformers` and `torch` and enable the optional modules in the code.
+* **Custom TTS**: Implement the `TTSProvider` interface in `audiobooker/tts_providers.py`.
+* **OpenClaw Skills**: You can extend OpenClaw's capabilities by adding new skills to its internal registry.
 
 ### Troubleshooting
 
-- "tesseract not found": add its install folder (e.g., `C:\Program Files\Tesseract-OCR`) to PATH or reinstall via winget.
-- "ffmpeg not found": confirm FFmpeg bin folder is on PATH.
-- TTS errors: confirm internet access and provider credentials if using paid/closed-source TTS.
+* **OpenClaw not found**: Ensure `openclaw` is cloned in the root and `pnpm` is installed.
+* **Tesseract/FFmpeg**: Confirm these are on your system PATH.
+* **AI errors**: Ensure your local LLM (LM Studio) is running and reachable by OpenClaw.
 
 ### Contributing
 
-- Create issues and pull requests on the `audiobooker` GitHub repo. Keep changes small and add tests where possible.
+* Create issues and pull requests on the `audiobooker` GitHub repo.
 
 ---
 
 ## Recent changes (2026-01-30)
 
-- **Default voice changed** to `en-GB-RyanNeural` (a deeper English male voice) and set as the app default.
-- **Sanity test completed**: created `pdfs/new.pdf` and generated audio parts into `out_test/` and `out_test_ryan/` to validate end-to-end processing.
-- **Environment prepared**: installed Tesseract and FFmpeg, created Python `venv`, and installed core Python packages required by the toolchain.
-- **Added tests & CI**: `pytest` smoke test (`tests/test_smoke.py`) and GitHub Actions CI (`.github/workflows/ci.yml`) — CI runs tests but does **not** upload audio artifacts.
-- **Repository created** at: <https://github.com/sginsbourg/audiobooker>
+* **Default voice changed** to `en-GB-RyanNeural` (a deeper English male voice) and set as the app default.
+* **Sanity test completed**: created `pdfs/new.pdf` and generated audio parts into `out_test/` and `out_test_ryan/` to validate end-to-end processing.
+* **Environment prepared**: installed Tesseract and FFmpeg, created Python `venv`, and installed core Python packages required by the toolchain.
+* **Added tests & CI**: `pytest` smoke test (`tests/test_smoke.py`) and GitHub Actions CI (`.github/workflows/ci.yml`) — CI runs tests but does **not** upload audio artifacts.
+* **Repository created** at: <https://github.com/sginsbourg/audiobooker>
 
 If you want, I can add a GitHub Action to run a smoke test on every push, or implement advanced features such as BLIP-based image captions or an Azure/ElevenLabs TTS provider.

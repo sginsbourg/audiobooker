@@ -21,6 +21,11 @@ def main():
         action="store_true",
         help="do not delete intermediate audio chunks after assembly",
     )
+    p.add_argument(
+        "--openclaw",
+        action="store_true",
+        help="use OpenClaw AI for cleaning and chapter splitting",
+    )
     args = p.parse_args()
 
     if not args.pdf and not args.paste:
@@ -49,7 +54,8 @@ def main():
         voice=args.voice,
         chunk_size=args.chunk_size,
         split_seconds=args.split_seconds,
-        keep_chunks=args.keep_chunks
+        keep_chunks=args.keep_chunks,
+        use_openclaw=args.openclaw
     )
     
     parts = gen.process(source, is_text=is_text)
