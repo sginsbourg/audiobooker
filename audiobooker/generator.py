@@ -9,7 +9,7 @@ from audiobooker.text_cleaner import clean_markdown
 from audiobooker.openclaw_processor import OpenClawProcessor
 
 class AudiobookGenerator:
-    def __init__(self, output_dir="out", voice="en-GB-RyanNeural", chunk_size=4000, split_seconds=3600, keep_chunks=False, use_openclaw=True):
+    def __init__(self, output_dir="out", voice="en-GB-RyanNeural", chunk_size=4000, split_seconds=3600, keep_chunks=False, use_openclaw=True, play_vlc=True):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.images_dir = self.output_dir / "images"
@@ -20,6 +20,7 @@ class AudiobookGenerator:
         self.tts = EdgeTTSProvider(voice=self.voice)
         self.use_openclaw = use_openclaw
         self.openclaw = OpenClawProcessor() if use_openclaw else None
+        self.play_vlc = play_vlc
 
     def assemble_audio(self, parts, out_file):
         combined = None
@@ -33,6 +34,41 @@ class AudiobookGenerator:
             raise ValueError("No audio parts to assemble")
         combined.export(out_file, format=Path(out_file).suffix.replace(".", ""))
         return out_file
+
+    def play_with_vlc(self, file_paths):
+        """Play generated files with VLC, installing it if missing."""
+        import subprocess
+        vlc_paths = [
+            r"C:\Program Files\VideoLAN\VLC\vlc.exe",
+            r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"
+        ]
+        executable = None
+        for p in vlc_paths:
+            if os.path.exists(p):
+                executable = p
+                break
+        
+        if not executable:
+            print("VLC not found. Attempting to install via winget...")
+            try:
+                # Silently install VLC using winget
+                subprocess.run(["winget", "install", "--id", "VideoLAN.VLC", "-e", "--silent", "--accept-package-agreements", "--accept-source-agreements"], check=True)
+                # Re-check paths after install
+                for p in vlc_paths:
+                    if os.path.exists(p):
+                        executable = p
+                        break
+            except Exception as e:
+                print(f"Failed to install VLC automatically: {e}")
+                return
+
+        if executable:
+            try:
+                print(f"Launching VLC to play: {file_paths}")
+                # Launch VLC with the files
+                subprocess.Popen([executable] + file_paths, start_new_session=True)
+            except Exception as e:
+                print(f"Error launching VLC: {e}")
 
     def process(self, input_source, is_text=False):
         # input_source is either a text string (if is_text=True) or a pdf path (str)
@@ -138,5 +174,9 @@ class AudiobookGenerator:
                 except: pass
 
         print(f"Generation complete. Files saved in: {final_output_dir}")
+        
+        if self.play_vlc and final_parts:
+            self.play_with_vlc(final_parts)
+            
         return final_parts
 
