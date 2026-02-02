@@ -4,173 +4,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audiobooker AI</title>
+    <title>Audiobooker AI Professional</title>
     <style>
         :root {
-            --bg-dark: #0f1115;
-            --bg-card: #1c1f26;
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --text-main: #ffffff;
+            --bg-dark: #0a0b0e;
+            --bg-card: #151921;
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+            --secondary: #c084fc;
+            --text-main: #f3f4f6;
             --text-muted: #9ca3af;
             --border: #2d3139;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         body {
             background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg-dark) 70%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 2rem 0;
         }
 
         .container {
             width: 100%;
-            max-width: 800px;
-            padding: 2rem;
+            max-width: 850px;
+            padding: 1rem;
         }
 
         .card {
             background: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            padding: 2rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
 
         h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(to right, #818cf8, #c084fc);
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(to bottom right, #ffffff 30%, #a5b4fc 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
         }
 
         .subtitle {
             color: var(--text-muted);
+            font-size: 1.1rem;
         }
 
         .tabs {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1rem;
+            gap: 0.5rem;
+            margin-bottom: 2.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.4rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
         }
 
         .tab {
+            flex: 1;
             background: none;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: all 0.2s;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tab.active {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary);
-            font-weight: 600;
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .input-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
             font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.8;
+        }
+
+        textarea,
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        textarea:focus,
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.1);
         }
 
         textarea {
-            width: 100%;
-            background: #111318;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            color: var(--text-main);
-            min-height: 200px;
+            min-height: 180px;
             resize: vertical;
+            line-height: 1.6;
         }
 
-        select,
         input[type="file"] {
             width: 100%;
-            background: #111318;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.8rem;
-            color: var(--text-main);
+            background: var(--glass);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            color: var(--text-muted);
+            text-align: center;
+            cursor: pointer;
         }
 
-        input[type="file"]::file-selector-button {
-            background: var(--primary);
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            margin-right: 1rem;
-            cursor: pointer;
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--glass);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 2rem;
         }
 
         button.primary {
             width: 100%;
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
             color: white;
             border: none;
-            padding: 1rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
+            padding: 1.25rem;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.3s;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
         }
 
-        button.primary:hover {
-            background: var(--primary-hover);
+        button.primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(99, 102, 241, 0.5);
+        }
+
+        button.primary:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         button.primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            opacity: 0.6;
+            cursor: progress;
+        }
+
+        /* Results Area */
+        #result-area {
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border);
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Professional Music Player */
+        .player-container {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .player-art {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .track-details h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .track-details p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .player-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .timeline-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .timeline {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            width: 0%;
+        }
+
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .ctrl-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ctrl-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .play-pause {
+            width: 64px;
+            height: 64px;
+            background: white;
+            color: black;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .playback-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .speed-control select {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            width: auto;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 120px;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 4px;
         }
 
         .hidden {
             display: none;
-        }
-
-        #result-area {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
-            animation: fadeIn 0.5s ease;
-        }
-
-        audio {
-            width: 100%;
-            margin-top: 1rem;
-            border-radius: 8px;
         }
 
         .loader {
@@ -191,18 +384,6 @@
                 transform: rotate(360deg);
             }
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
     </style>
 </head>
 
@@ -211,7 +392,7 @@
         <div class="card">
             <header>
                 <h1>Audiobooker AI</h1>
-                <p class="subtitle">Transform PDF & Text into natural speech instantly</p>
+                <p class="subtitle">Premium AI Narration for Documents & Articles</p>
             </header>
 
             <div class="tabs">
@@ -219,57 +400,143 @@
                 <button class="tab" onclick="switchTab('pdf')">Upload PDF</button>
             </div>
 
-            <div class="input-group">
-                <label>Select Narrator</label>
-                <select id="voice-select">
-                    <option value="en-GB-RyanNeural">Ryan (British, Deep) - Default</option>
-                    <option value="en-US-ChristopherNeural">Christopher (US, Male)</option>
-                    <option value="en-US-JennyNeural">Jenny (US, Female)</option>
-                    <option value="en-GB-SoniaNeural">Sonia (British, Female)</option>
-                </select>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="voice-select">Narrator</label>
+                    <select id="voice-select" title="Select Narrator">
+                        <option value="en-GB-RyanNeural">Ryan (UK, Deep)</option>
+                        <option value="en-US-ChristopherNeural">Christopher (US, Bold)</option>
+                        <option value="en-US-JennyNeural">Jenny (US, Soft)</option>
+                        <option value="en-GB-SoniaNeural">Sonia (UK, Clear)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Email Notification</label>
+                    <input type="email" id="email-input" placeholder="your@email.com (optional)">
+                </div>
             </div>
 
             <div id="paste-section">
                 <div class="input-group">
-                    <label>Enter Text (Markdown supported and stripped automatically)</label>
-                    <textarea id="text-input" placeholder="Paste your article or chapter here..."></textarea>
+                    <label>Text Content</label>
+                    <textarea id="text-input" placeholder="Enter or paste your text here..."></textarea>
                 </div>
             </div>
 
             <div id="pdf-section" class="hidden">
                 <div class="input-group">
-                    <label>Upload PDF Document</label>
+                    <label>PDF Document</label>
                     <input type="file" id="pdf-input" accept=".pdf">
                 </div>
             </div>
 
-            <div class="input-group" style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
-                <label style="margin-bottom: 0; cursor: pointer;">
-                    <input type="checkbox" id="openclaw-toggle" checked
-                        style="width: auto; margin-right: 0.5rem; transform: scale(1.2);">
-                    Enable OpenClaw AI Assistant (Cleaning & Chaptering) 🦞
+            <div class="toggle-group">
+                <input type="checkbox" id="openclaw-toggle" checked style="width: 20px; height: 20px; cursor: pointer;">
+                <label for="openclaw-toggle"
+                    style="margin: 0; cursor: pointer; text-transform: none; letter-spacing: normal; font-weight: 500;">
+                    Enable <b>OpenClaw AI</b> for professional cleaning and chapter detection 🦞
                 </label>
             </div>
 
-            <button id="generate-btn" class="primary" onclick="generate()" style="margin-top: 1.5rem;">
+            <button id="generate-btn" class="primary" onclick="generate()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
                 <span>Generate Audiobook</span>
             </button>
 
+            <!-- Result Player Area -->
             <div id="result-area" class="hidden">
-                <h3>Your Audiobook</h3>
-                <p class="subtitle" style="margin-bottom: 1rem; font-size: 0.9rem;">Generation complete. Listen or
-                    download below.</p>
-                <audio id="audio-player" controls></audio>
-                <div style="margin-top: 1rem;">
-                    <a id="download-link" href="#" download
-                        style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">Download .mp3 file</a>
+                <div class="player-container">
+                    <div class="player-info">
+                        <div class="player-art">🎧</div>
+                        <div class="track-details">
+                            <h3 id="track-name">Your Audiobook</h3>
+                            <p id="track-status">Ready to listen</p>
+                        </div>
+                        <div style="margin-left: auto;">
+                            <a id="download-link" href="#" download class="ctrl-btn" title="Download">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="player-controls">
+                        <div class="timeline-container">
+                            <span id="current-time">0:00</span>
+                            <div class="timeline" id="timeline">
+                                <div class="progress" id="progress"></div>
+                            </div>
+                            <span id="duration">0:00</span>
+                        </div>
+
+                        <div class="control-buttons">
+                            <button class="ctrl-btn" onclick="skip(-15)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
+                                </svg>
+                            </button>
+                            <button class="ctrl-btn play-pause" id="play-btn" onclick="togglePlay()">
+                                <svg id="play-icon" width="32" height="32" viewBox="0 0 24 24" fill="black">
+                                    <path d="M5 3l14 9-14 9V3z" />
+                                </svg>
+                                <svg id="pause-icon" class="hidden" width="32" height="32" viewBox="0 0 24 24"
+                                    fill="black">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                                </svg>
+                            </button>
+                            <button class="ctrl-btn" onclick="skip(15)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="playback-meta">
+                            <div class="speed-control">
+                                <select id="speed-select" onchange="changeSpeed()" title="Playback Speed">
+                                    <option value="0.75">0.75x</option>
+                                    <option value="1.0" selected>1.0x</option>
+                                    <option value="1.25">1.25x</option>
+                                    <option value="1.5">1.5x</option>
+                                    <option value="2.0">2.0x</option>
+                                </select>
+                            </div>
+                            <div class="volume-container">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                                </svg>
+                                <input type="range" class="volume-slider" min="0" max="1" step="0.1" value="1"
+                                    oninput="changeVolume(this.value)">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <audio id="audio-engine" class="hidden"></audio>
+
     <script>
         let currentMode = 'paste';
+        const engine = document.getElementById('audio-engine');
+        const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const progress = document.getElementById('progress');
+        const timeline = document.getElementById('timeline');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
 
         function switchTab(mode) {
             currentMode = mode;
@@ -289,11 +556,11 @@
             const btn = document.getElementById('generate-btn');
             const resultArea = document.getElementById('result-area');
             const voice = document.getElementById('voice-select').value;
+            const email = document.getElementById('email-input').value;
             const useOpenClaw = document.getElementById('openclaw-toggle').checked;
 
-            // UI Loading State
             btn.disabled = true;
-            btn.innerHTML = '<div class="loader"></div><span>Processing...</span>';
+            btn.innerHTML = '<div class="loader"></div><span>NARATING...</span>';
             resultArea.classList.add('hidden');
 
             try {
@@ -306,7 +573,7 @@
                     response = await fetch('/api/generate/text', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text, voice, openclaw: useOpenClaw })
+                        body: JSON.stringify({ text, voice, openclaw: useOpenClaw, email })
                     });
                 } else {
                     const fileInput = document.getElementById('pdf-input');
@@ -316,6 +583,7 @@
                     formData.append('file', fileInput.files[0]);
                     formData.append('voice', voice);
                     formData.append('openclaw', useOpenClaw);
+                    if (email) formData.append('email', email);
 
                     response = await fetch('/api/generate/pdf', {
                         method: 'POST',
@@ -327,22 +595,77 @@
 
                 const data = await response.json();
 
+                // Load Audio Engine
+                engine.src = data.audio_url;
+                document.getElementById('download-link').href = data.audio_url;
+
                 // Show Result
-                const audioPlayer = document.getElementById('audio-player');
-                const downloadLink = document.getElementById('download-link');
-
-                audioPlayer.src = data.audio_url;
-                downloadLink.href = data.audio_url;
-
                 resultArea.classList.remove('hidden');
+
+                // Professional Touch: Smooth auto-scroll to bottom
+                setTimeout(() => {
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }, 300);
 
             } catch (e) {
                 alert('Error: ' + e.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<span>Generate Audiobook</span>';
+                btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg><span>Generate Audiobook</span>';
             }
         }
+
+        /* Professional Player Logic */
+        function togglePlay() {
+            if (engine.paused) {
+                engine.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                engine.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        }
+
+        function skip(seconds) {
+            engine.currentTime += seconds;
+        }
+
+        function changeSpeed() {
+            engine.playbackRate = document.getElementById('speed-select').value;
+        }
+
+        function changeVolume(val) {
+            engine.volume = val;
+        }
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        engine.addEventListener('loadedmetadata', () => {
+            durationEl.innerText = formatTime(engine.duration);
+        });
+
+        engine.addEventListener('timeupdate', () => {
+            const perc = (engine.currentTime / engine.duration) * 100;
+            progress.style.width = perc + '%';
+            currentTimeEl.innerText = formatTime(engine.currentTime);
+        });
+
+        timeline.addEventListener('click', (e) => {
+            const rect = timeline.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            engine.currentTime = pos * engine.duration;
+        });
+
+        engine.addEventListener('ended', () => {
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+        });
     </script>
 </body>
 

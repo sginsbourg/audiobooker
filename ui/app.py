@@ -1,5 +1,4 @@
-
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
@@ -14,11 +13,11 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent))
 
 from audiobooker.generator import AudiobookGenerator
+from audiobooker.email_notifier import send_notification_email
 
 app = FastAPI()
 
 # Mount static files for the frontend
-# We will serve index.html from static or directly
 app.mount("/static", StaticFiles(directory="ui/static"), name="static")
 
 UPLOAD_DIR = Path("temp_uploads")
@@ -31,13 +30,14 @@ class TextRequest(BaseModel):
     text: str
     voice: str = "en-GB-RyanNeural"
     openclaw: bool = True
+    email: Optional[str] = None
 
 @app.get("/")
 async def read_index():
     return FileResponse("ui/static/index.html")
 
 @app.post("/api/generate/text")
-def generate_from_text(request: TextRequest):
+def generate_from_text(request: TextRequest, fastapi_request: Request):
     try:
         job_id = str(uuid.uuid4())
         job_out = OUTPUT_DIR / job_id
@@ -54,10 +54,14 @@ def generate_from_text(request: TextRequest):
         if not parts:
             raise HTTPException(status_code=500, detail="No audio generated")
             
-        # Return the first part for playback
-        # In a real app we might zip them or return a playlist
         final_file = parts[0]
         relative_path = f"/api/download/{job_id}/{Path(final_file).name}"
+        
+        if request.email:
+            # Build absolute URL
+            base_url = str(fastapi_request.base_url).rstrip('/')
+            absolute_url = f"{base_url}{relative_path}"
+            send_notification_email(request.email, "Your Text Snippet", absolute_url)
         
         return {"status": "success", "audio_url": relative_path}
     except Exception as e:
@@ -66,15 +70,18 @@ def generate_from_text(request: TextRequest):
 
 @app.post("/api/generate/pdf")
 def generate_from_pdf(
+    fastapi_request: Request,
     file: UploadFile = File(...), 
     voice: str = Form("en-GB-RyanNeural"),
-    openclaw: bool = Form(True)
+    openclaw: bool = Form(True),
+    email: Optional[str] = Form(None)
 ):
     try:
         job_id = str(uuid.uuid4())
         job_out = OUTPUT_DIR / job_id
         
-        temp_pdf = UPLOAD_DIR / f"{job_id}_{file.filename}"
+        filename = file.filename
+        temp_pdf = UPLOAD_DIR / f"{job_id}_{filename}"
         with open(temp_pdf, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
@@ -87,7 +94,7 @@ def generate_from_pdf(
         
         parts = gen.process(str(temp_pdf), is_text=False)
         
-        # Cleanup upload
+        # Cleanup upload if it was moved/copied by process
         if os.path.exists(temp_pdf):
             os.remove(temp_pdf)
         
@@ -96,6 +103,11 @@ def generate_from_pdf(
             
         final_file = parts[0]
         relative_path = f"/api/download/{job_id}/{Path(final_file).name}"
+        
+        if email:
+            base_url = str(fastapi_request.base_url).rstrip('/')
+            absolute_url = f"{base_url}{relative_path}"
+            send_notification_email(email, filename, absolute_url)
         
         return {"status": "success", "audio_url": relative_path}
     except Exception as e:

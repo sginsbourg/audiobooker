@@ -40,6 +40,12 @@ Audiobooker follows a strict organization and cleanup procedure for every genera
 * **OpenClaw**: Cloned in the `openclaw` directory at the root of this repo.
 * **Node.js 22+** and **pnpm**: Required to run OpenClaw.
 * **LM Studio**: Running locally (or a similar provider) to power OpenClaw's reasoning.
+* **SMTP Configuration (Optional)**: For email notifications, set the following environment variables in a `.env` file at the root:
+  * `SMTP_SERVER` (e.g., `smtp.gmail.com`)
+  * `SMTP_PORT` (e.g., `587`)
+  * `SMTP_USER` (your email)
+  * `SMTP_PASSWORD` (your app-specific password)
+  * `SENDER_EMAIL` (the "from" address)
 
 ### Quick start
 
