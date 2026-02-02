@@ -37,6 +37,17 @@ class AudiobookGenerator:
     def process(self, input_source, is_text=False):
         # input_source is either a text string (if is_text=True) or a pdf path (str)
         
+        # 0. Prepare output folder named after the PDF (if it's a file)
+        if not is_text and os.path.isfile(input_source):
+            pdf_path = Path(input_source)
+            book_title = pdf_path.stem
+            final_output_dir = self.output_dir / book_title
+            final_output_dir.mkdir(parents=True, exist_ok=True)
+            folder_for_generation = final_output_dir
+        else:
+            final_output_dir = self.output_dir
+            folder_for_generation = self.output_dir
+
         full_text = ""
         if is_text:
             full_text = input_source
@@ -72,6 +83,8 @@ class AudiobookGenerator:
 
         # 4. Generate Audio for each chapter and assemble按照 plan
         final_parts = []
+        all_temp_files = [] # Track all temp files for cleanup at the end
+        
         for i, group in enumerate(audio_plan):
             group_files = []
             for j, chapter in enumerate(group):
@@ -80,16 +93,18 @@ class AudiobookGenerator:
                 ch_chunks = chunk_text(chapter['content'], max_chars=self.chunk_size)
                 ch_files = []
                 for k, c in enumerate(ch_chunks):
-                    fname = self.output_dir / f"group{i:03d}_ch{j:03d}_c{k:03d}.mp3"
+                    fname = folder_for_generation / f"group{i:03d}_ch{j:03d}_c{k:03d}.mp3"
                     self.tts.synthesize(c, str(fname), voice=self.voice)
                     ch_files.append(str(fname))
+                    all_temp_files.append(str(fname))
                 
                 # Merge chunks into a single chapter file (optional but cleaner for assembly)
-                chapter_file = self.output_dir / f"group{i:03d}_ch{j:02d}_full.mp3"
+                chapter_file = folder_for_generation / f"group{i:03d}_ch{j:02d}_full.mp3"
                 self.assemble_audio(ch_files, str(chapter_file))
                 group_files.append(str(chapter_file))
+                all_temp_files.append(str(chapter_file))
                 
-                # Cleanup chapter chunks
+                # Cleanup chapter chunks immediately if not keeping
                 if not self.keep_chunks:
                     for f in ch_files:
                         try: Path(f).unlink()
@@ -97,15 +112,31 @@ class AudiobookGenerator:
             
             # Merge all chapters in the group into one final audio part
             idx = len(final_parts) + 1
-            outpath = self.output_dir / f"audiobook_part_{idx:03d}.mp3"
+            outpath = folder_for_generation / f"audiobook_part_{idx:03d}.mp3"
             self.assemble_audio(group_files, outpath)
             final_parts.append(str(outpath))
             
-            # Cleanup chapter files
+            # Cleanup chapter files immediately if not keeping
             if not self.keep_chunks:
                 for f in group_files:
                     try: Path(f).unlink()
                     except: pass
         
+        # 5. Post-processing: Move PDF and Final Cleanup
+        if not is_text and os.path.isfile(input_source):
+            pdf_path = Path(input_source)
+            target_pdf_path = final_output_dir / pdf_path.name
+            print(f"Moving PDF to {target_pdf_path}...")
+            shutil.move(str(pdf_path), str(target_pdf_path))
+
+        # Final cleanup of any tracked temp files that might remain
+        if not self.keep_chunks:
+            for f in all_temp_files:
+                try: 
+                    if os.path.exists(f): 
+                        Path(f).unlink()
+                except: pass
+
+        print(f"Generation complete. Files saved in: {final_output_dir}")
         return final_parts
 
