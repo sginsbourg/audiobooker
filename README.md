@@ -65,16 +65,16 @@ pnpm build
 # See openclaw/README.md for configuring your AI model/LM Studio connection
 ```
 
-1. **Run with AI features**:
+1. **Run with AI features** (enabled by default):
 
 ```powershell
-$env:PYTHONPATH='.'; python scripts/generate_audiobook.py <input.pdf> --openclaw --out ./book_out
+$env:PYTHONPATH='.'; python scripts/generate_audiobook.py <input.pdf> --out ./book_out
 ```
 
 ### Command-line options
 
 * `pdf` (positional): PDF file path or empty for paste.
-* `--openclaw`: **Enable AI-powered cleaning, chaptering, and audio management.**
+* `--no-openclaw`: **Disable AI-powered cleaning, chaptering, and audio management.**
 * `--out`: Output directory (default: `out`).
 * `--voice`: Edge TTS voice ID (default: `en-GB-RyanNeural`).
 * `--chunk-size`: Max characters per TTS chunk (default: 4000).
