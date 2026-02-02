@@ -595,6 +595,11 @@
 
                 const data = await response.json();
 
+                // Professional Touch: Play success chime
+                const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                chime.volume = 0.5;
+                chime.play();
+
                 // Load Audio Engine
                 engine.src = data.audio_url;
                 document.getElementById('download-link').href = data.audio_url;
@@ -605,7 +610,7 @@
                 // Professional Touch: Smooth auto-scroll to bottom
                 setTimeout(() => {
                     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                }, 300);
+                }, 400);
 
             } catch (e) {
                 alert('Error: ' + e.message);
