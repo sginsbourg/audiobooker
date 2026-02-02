@@ -36,7 +36,7 @@ async def read_index():
     return FileResponse("ui/static/index.html")
 
 @app.post("/api/generate/text")
-async def generate_from_text(request: TextRequest):
+def generate_from_text(request: TextRequest):
     try:
         job_id = str(uuid.uuid4())
         job_out = OUTPUT_DIR / job_id
@@ -63,7 +63,7 @@ async def generate_from_text(request: TextRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/generate/pdf")
-async def generate_from_pdf(file: UploadFile = File(...), voice: str = Form("en-GB-RyanNeural")):
+def generate_from_pdf(file: UploadFile = File(...), voice: str = Form("en-GB-RyanNeural")):
     try:
         job_id = str(uuid.uuid4())
         job_out = OUTPUT_DIR / job_id
